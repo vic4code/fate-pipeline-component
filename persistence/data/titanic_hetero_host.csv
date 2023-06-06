@@ -1,4 +1,4 @@
-PassengerId,Parch,Ticket,Fare,Cabin,Embarked
+passengerid,parch,ticket,fare,cabin,embarked
 1,0,A/5 21171,7.25,,S
 2,0,PC 17599,71.2833,C85,C
 3,0,STON/O2. 3101282,7.925,,S
