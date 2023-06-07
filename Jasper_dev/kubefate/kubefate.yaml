@@ -1,0 +1,244 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubefate
+  namespace: kube-fate
+  labels:
+    fate: kubefate
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      fate: kubefate
+  template:
+    metadata:
+      labels:
+        fate: kubefate
+    spec:
+      serviceAccountName: kubefate-admin
+      containers:
+        - image: federatedai/kubefate:v1.4.5
+          imagePullPolicy: IfNotPresent
+          name: kubefate
+          env:
+            - name: FATECLOUD_DB_TYPE
+              value: "mysql"
+            - name: FATECLOUD_DB_HOST
+              value: "mariadb"
+            - name: FATECLOUD_DB_PORT
+              value: "3306"
+            - name: FATECLOUD_DB_NAME
+              value: "kube_fate"
+            - name: FATECLOUD_DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: kubefate-secret
+                  key: mariadbUsername
+            - name: FATECLOUD_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kubefate-secret
+                  key: mariadbPassword
+            - name: FATECLOUD_REPO_NAME
+              value: "kubefate"
+            - name: FATECLOUD_REPO_URL
+              value: "https://federatedai.github.io/KubeFATE"
+            - name: FATECLOUD_USER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: kubefate-secret
+                  key: kubefateUsername
+            - name: FATECLOUD_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kubefate-secret
+                  key: kubefatePassword
+            - name: FATECLOUD_SERVER_ADDRESS
+              value: "0.0.0.0"
+            - name: FATECLOUD_SERVER_PORT
+              value: "8080"
+            - name: FATECLOUD_LOG_LEVEL
+              value: "debug"
+            - name: FATECLOUD_LOG_NOCOLOR
+              value: "true"
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              memory: "4Gi"
+              cpu: "2"
+            requests:
+              memory: 512Mi
+              cpu: "0.5"
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          startupProbe:
+            tcpSocket:
+              port: 8080
+            failureThreshold: 30
+            periodSeconds: 10
+      restartPolicy: Always
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+  namespace: kube-fate
+  labels:
+    fate: mariadb
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      fate: mariadb
+  template:
+    metadata:
+      labels:
+        fate: mariadb
+    spec:
+      serviceAccountName: kubefate-admin
+      containers:
+        - image: mariadb:10
+          imagePullPolicy: IfNotPresent
+          name: mariadb
+          env:
+            - name: MYSQL_DATABASE
+              value: "kube_fate"
+            - name: MYSQL_ALLOW_EMPTY_PASSWORD
+              value: "1"
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: kubefate-secret
+                  key: mariadbUsername
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kubefate-secret
+                  key: mariadbPassword
+          ports:
+            - containerPort: 3306
+          resources:
+            limits:
+              memory: "4Gi"
+              cpu: "2"
+            requests:
+              memory: 512Mi
+              cpu: "0.5"
+          volumeMounts:
+            - name: mariadb-data
+              mountPath: /var/lib/mysql
+          livenessProbe:
+            exec:
+              command:
+              - mysqladmin
+              - ping
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+              - mysqladmin
+              - ping
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+      restartPolicy: Always
+      volumes:
+        - name: mariadb-data
+          # If you want persistence, please modify it to the PV you want to use.
+          emptyDir: {}
+          # hostPath:
+          #   path: /data/kubefate/mysql/db
+          #   type: DirectoryOrCreate
+          # persistentVolumeClaim:
+          #   claimName: "mariadb-data"
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: mariadb-data
+#   namespace: kube-fate
+# spec:
+#   accessModes:
+#   - ReadWriteOnce
+#   storageClassName: <MyStorageClassName>
+#   resources:
+#     requests:
+#       storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+  namespace: kube-fate
+  labels:
+    fate: mariadb
+spec:
+  ports:
+    - name: "3306"
+      port: 3306
+      targetPort: 3306
+      protocol: TCP
+  type: ClusterIP
+  selector:
+    fate: mariadb
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubefate
+  namespace: kube-fate
+  labels:
+    fate: kubefate
+spec:
+  ports:
+    - name: "8080"
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP
+  selector:
+    fate: kubefate
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubefate
+  namespace: kube-fate
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: 
+                name: kubefate
+                port:
+                  number: 8080

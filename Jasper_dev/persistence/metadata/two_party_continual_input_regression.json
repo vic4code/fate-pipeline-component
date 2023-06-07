@@ -1,0 +1,12 @@
+{
+    "hetero_secureboost_0": {
+        "train": {
+            "explained_variance": 0.9226178534666176,
+            "mean_absolute_error": 0.21740692326486935,
+            "mean_squared_error": 0.07876890259778647,
+            "median_absolute_error": 0.194147640835375,
+            "r2_score": 0.922617852701248,
+            "root_mean_squared_error": 0.2806579815323029
+        }
+    }
+}

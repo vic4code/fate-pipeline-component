@@ -1,0 +1,42 @@
+{
+    "missing_fill_info": {
+        "missing_impute_rate": {
+            "x1": 0.14285714285714285,
+            "x2": 0.0,
+            "x3": 0.2857142857142857
+        },
+        "missing_impute_value": {
+            "x1": 0.0,
+            "x2": "A",
+            "x3": "1.0"
+        },
+        "missing_value": [
+            "",
+            "none",
+            "null",
+            "na",
+            "None",
+            NaN
+        ]
+    },
+    "outlier_replace_rate": {
+        "outlier_replace_rate": {
+            "x1": 0.0,
+            "x2": 0.0,
+            "x3": 0.0
+        },
+        "outlier_replace_value": {
+            "x1": 0.0,
+            "x2": "A",
+            "x3": "1.0"
+        },
+        "outlier_value": [
+            "",
+            "none",
+            "null",
+            "na",
+            "None",
+            NaN
+        ]
+    }
+}
