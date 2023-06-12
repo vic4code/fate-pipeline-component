@@ -1,0 +1,12 @@
+{
+    "hetero_nn_0": {
+        "train": {
+            "explained_variance": 0.8989518595511835,
+            "mean_absolute_error": 0.2481708641606383,
+            "mean_squared_error": 0.10376519412812403,
+            "median_absolute_error": 0.1963573694229126,
+            "r2_score": 0.8980616298858738,
+            "root_mean_squared_error": 0.32212605316571963
+        }
+    }
+}
