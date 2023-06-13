@@ -1,0 +1,12 @@
+{
+    "homo_nn_0": {
+        "train": {
+            "explained_variance": 0.9390856789311817,
+            "mean_absolute_error": 0.2065045483317226,
+            "mean_squared_error": 0.06403768233390633,
+            "median_absolute_error": 0.17835265398025513,
+            "r2_score": 0.9368337908609534,
+            "root_mean_squared_error": 0.25305667810572857
+        }
+    }
+}
